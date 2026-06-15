@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
 import { api } from "@/services/api"
+import { supabase } from "@/lib/supabase"
 
 interface User {
   id: string
@@ -16,7 +17,7 @@ interface AuthContextType {
   token: string | null
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, nome: string, tipo?: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   loading: boolean
   isAdmin: boolean
 }
@@ -47,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const res = await api.auth.login({ email, password })
+    await supabase.auth.setSession({ access_token: res.access_token, refresh_token: "" }).catch(() => {})
     localStorage.setItem("token", res.access_token)
     if (res.role) localStorage.setItem("role", res.role)
     setToken(res.access_token)
@@ -57,12 +59,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (email: string, password: string, nome: string, tipo?: string) => {
     const res = await api.auth.register({ email, password, nome, tipo })
-    localStorage.setItem("token", res.access_token)
-    setToken(res.access_token)
+    if (res.access_token) {
+      await supabase.auth.setSession({ access_token: res.access_token, refresh_token: "" }).catch(() => {})
+      localStorage.setItem("token", res.access_token)
+      setToken(res.access_token)
+    }
     setUser({ id: res.user_id, nome, foto: undefined, role: "user" })
   }
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut().catch(() => {})
     localStorage.removeItem("token")
     localStorage.removeItem("role")
     setToken(null)
