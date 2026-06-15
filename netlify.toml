@@ -3,6 +3,9 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  NEXT_PUBLIC_SUPABASE_URL = "https://mcysrdupbqekliqetxqw.supabase.co"
+  NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jeXNyZHVwYnFla2xpcWV0eHF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTI4MjYsImV4cCI6MjA5NzEyODgyNn0.KaPtEGJMTrIkl9GzRdMaz3e-yfB-XBDOTtUbrh1CG7A"
+  SUPABASE_URL = "https://mcysrdupbqekliqetxqw.supabase.co"
 
 [[headers]]
   for = "/*"
