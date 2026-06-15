@@ -1,0 +1,15 @@
+{
+  "name": "Nextrigon",
+  "short_name": "Nextrigon",
+  "description": "Marketplace de match entre profissionais jurídicos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#f97316",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "pt-BR"
+}
