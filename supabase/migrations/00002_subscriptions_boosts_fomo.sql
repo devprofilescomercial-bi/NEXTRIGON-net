@@ -59,7 +59,7 @@ CREATE TABLE boost_activations (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_boost_activations_active ON boost_activations(user_id, expires_at) WHERE expires_at > now();
+CREATE INDEX idx_boost_activations_active ON boost_activations(user_id, expires_at);
 
 -- Notificações do sistema
 CREATE TABLE notifications (
