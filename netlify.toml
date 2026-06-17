@@ -6,6 +6,12 @@
   NEXT_PUBLIC_SUPABASE_URL = "https://mcysrdupbqekliqetxqw.supabase.co"
   NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jeXNyZHVwYnFla2xpcWV0eHF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTI4MjYsImV4cCI6MjA5NzEyODgyNn0.KaPtEGJMTrIkl9GzRdMaz3e-yfB-XBDOTtUbrh1CG7A"
   SUPABASE_URL = "https://mcysrdupbqekliqetxqw.supabase.co"
+  # Stripe - definir como site-level env vars no Netlify Dashboard (NAO em netlify.toml - vazar chaves)
+  # STRIPE_SECRET_KEY = "sk_live_..."
+  # STRIPE_PRICE_PRO = "price_xxx"
+  # STRIPE_PRICE_ELITE = "price_xxx"
+  # STRIPE_WEBHOOK_SECRET = "whsec_xxx"
+  # STRIPE_PUBLISHABLE_KEY = "pk_live_..."  # (NEXT_PUBLIC_ se usado no cliente)
 
 [[headers]]
   for = "/*"

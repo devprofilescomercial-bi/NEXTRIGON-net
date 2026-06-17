@@ -51,12 +51,13 @@ export default function PlanosPage() {
     if (planId === currentPlan) return
     setUpgrading(planId)
     try {
-      await fetch("/api/subscription", {
+      const res = await fetch("/api/payment/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
-        body: JSON.stringify({ action: "upgrade", plan_id: planId }),
+        body: JSON.stringify({ plan_id: planId }),
       })
-      setCurrentPlan(planId)
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
     } catch (e) {
       console.error(e)
     }
