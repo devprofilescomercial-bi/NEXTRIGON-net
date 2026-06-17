@@ -93,6 +93,21 @@ export async function GET(req: NextRequest) {
     let filtered = (deck || []).filter((p: any) => !swipedIds.includes(p.user_id))
     if (esp) filtered = filtered.filter((p: any) => (p.areas_atuacao || []).some((a: string) => a.toLowerCase().includes(esp.toLowerCase())))
 
+    // Track profile views for FOMO
+    if (filtered.length > 0) {
+      try {
+        const views = filtered.map((p: any) => ({ viewer_id: userId, target_id: p.user_id }))
+        await supabaseAdmin.from("profile_views").insert(views)
+      } catch {}
+    }
+
+    // Boost ordering: boosted profiles first
+    filtered.sort((a: any, b: any) => {
+      const aBoost = a.boost_active_until && new Date(a.boost_active_until) > new Date() ? 1 : 0
+      const bBoost = b.boost_active_until && new Date(b.boost_active_until) > new Date() ? 1 : 0
+      return bBoost - aBoost
+    })
+
     return NextResponse.json(filtered.map((p: any) => ({
       id: p.user_id, nome: p.nome, foto: p.foto || "", bio: p.bio || "",
       especialidade: (p.areas_atuacao as string[])?.[0] || "Advogado(a)",
@@ -102,6 +117,7 @@ export async function GET(req: NextRequest) {
       taxa_resposta: p.taxa_resposta,
       distancia: (uLat && uLng && p.lat && p.lng) ? `${haversine(uLat, uLng, p.lat, p.lng)} km` : p.cidade || "",
       lat: p.lat, lng: p.lng,
+      boost_active: !!(p.boost_active_until && new Date(p.boost_active_until) > new Date()),
     })))
   }
 
@@ -199,7 +215,13 @@ export async function GET(req: NextRequest) {
 
   const userMatch = pathname.match(/^\/api\/users\/(.+)$/)
   if (userMatch) {
-    const { data: p } = await supabaseAdmin.from("profiles").select("*").eq("user_id", userMatch[1]).single()
+    const targetId = userMatch[1]
+    const { data: p } = await supabaseAdmin.from("profiles").select("*").eq("user_id", targetId).single()
+    // Track profile view for FOMO (only if viewer is different from target)
+    if (userId && userId !== targetId) {
+      try { await supabaseAdmin.from("profile_views").insert({ viewer_id: userId, target_id: targetId }) } catch {}
+    }
+
     return p ? NextResponse.json(p) : NextResponse.json({ detail: "Not found" }, { status: 404 })
   }
 
@@ -237,13 +259,65 @@ export async function POST(req: NextRequest) {
 
   if (pathname === "/api/match/swipe") {
     if (!userId) return NextResponse.json({ detail: "Nao autenticado" }, { status: 401 })
+
+    // Check match limits for free users
+    if (body.direction === "like") {
+      const { data: sub } = await supabaseAdmin.from("subscriptions").select("*").eq("user_id", userId).maybeSingle()
+      const planId = sub?.plan_id || "free"
+      const { data: plan } = await supabaseAdmin.from("subscription_plans").select("*").eq("id", planId).single()
+      const limit = plan?.matches_mensais || 5
+      const used = sub?.matches_used_this_month || 0
+      if (used >= limit) {
+        return NextResponse.json({ detail: "Voce atingiu seu limite mensal de matches. Assine o Plano Pro para continuar.", limit_reached: true }, { status: 403 })
+      }
+    }
+
+    // Check first impression permission (Elite only)
+    const hasMessage = body.direction === "like" && body.message && body.message.trim().length > 0
+    if (hasMessage) {
+      const { data: msgSub } = await supabaseAdmin.from("subscriptions").select("plan_id").eq("user_id", userId).maybeSingle()
+      const isElite = msgSub?.plan_id === "elite"
+      if (!isElite) {
+        return NextResponse.json({ detail: "Recurso exclusivo do Plano Elite" }, { status: 403 })
+      }
+    }
+
     const { data: existing } = await supabaseAdmin.from("swipes").select("*").eq("from_user", userId).eq("to_user", body.to_user_id).maybeSingle()
     if (existing) return NextResponse.json({ match: false })
-    await supabaseAdmin.from("swipes").insert({ from_user: userId, to_user: body.to_user_id, direction: body.direction })
+
+    const swipeData: any = { from_user: userId, to_user: body.to_user_id, direction: body.direction }
+    if (hasMessage) swipeData.message = body.message
+
+    await supabaseAdmin.from("swipes").insert(swipeData)
+
     const { data: reverse } = await supabaseAdmin.from("swipes").select("*").eq("from_user", body.to_user_id).eq("to_user", userId).eq("direction", "like").maybeSingle()
     if (body.direction === "like" && reverse) {
       const { data: match } = await supabaseAdmin.from("matches").insert({ user1: userId, user2: body.to_user_id }).select().single()
-      return NextResponse.json({ match: true, match_id: match.id })
+
+      // Increment match counter
+      let curSub: any = null
+      try {
+        const r = await supabaseAdmin.from("subscriptions").select("matches_used_this_month").eq("user_id", userId).single()
+        curSub = r.data
+      } catch {}
+      if (curSub) {
+        await supabaseAdmin.from("subscriptions").update({ matches_used_this_month: curSub.matches_used_this_month + 1 }).eq("user_id", userId)
+      }
+
+      // Create match notification for the other user
+      const { data: myProfile } = await supabaseAdmin.from("profiles").select("nome").eq("user_id", userId).single()
+      try {
+        await supabaseAdmin.from("notifications").insert({
+          user_id: body.to_user_id,
+          type: "match",
+          title: "Novo match!",
+          message: "Voce deu match com " + (myProfile?.nome || "um profissional"),
+          cta_text: "Conversar agora",
+          cta_link: "/app/chat",
+        })
+      } catch {}
+
+      return NextResponse.json({ match: true, match_id: match.id, has_message: hasMessage })
     }
     return NextResponse.json({ match: false })
   }

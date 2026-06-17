@@ -153,3 +153,80 @@ export interface MatchFilters {
   ufs: string[]
   objetivos: string[]
 }
+
+// Planos e assinaturas
+export interface PlanFeature {
+  id: string
+  nome: string
+  preco: number
+  matches_mensais: number
+  boosts_mensais: number
+  pode_ver_quem_curtiu: boolean
+  chat_ilimitado: boolean
+  primeira_impressao: boolean
+  perfil_verificado: boolean
+  ranking_premium: boolean
+  relatorios: string
+  destaque_nacional: boolean
+  selo_autoridade: boolean
+}
+
+export interface UserSubscription {
+  id: string
+  user_id: string
+  plan_id: string
+  status: string
+  current_period_start: string
+  current_period_end: string
+  boosts_remaining: number
+  matches_used_this_month: number
+  cancel_at_period_end: boolean
+}
+
+export interface DashboardCounters {
+  oportunidades_semana: number
+  interesses_recebidos: number
+  visualizacoes_perfil: number
+  matches_restantes: number
+  plan_id: string
+  plan_nome: string
+}
+
+export interface BoostOption {
+  quantidade: number
+  preco: number
+  label: string
+}
+
+export interface BoostStatus {
+  active: boolean
+  expires_at: string | null
+  boosts_remaining: number
+}
+
+export interface UserNotification {
+  id: string
+  type: string
+  title: string
+  message: string
+  cta_text: string | null
+  cta_link: string | null
+  read: boolean
+  created_at: string
+}
+
+export interface FinancialStat {
+  mes: number
+  ano: number
+  conexoes: number
+  parcerias_fechadas: number
+  honorarios_receita: number
+  oportunidades_recebidas: number
+  valor_negociacao: number
+}
+
+export interface SwipeWithMessage {
+  to_user_id: string
+  direction: string
+  message?: string
+}

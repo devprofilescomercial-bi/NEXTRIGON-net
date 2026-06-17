@@ -33,11 +33,17 @@ export default function MatchPage() {
   const [selectedProfile, setSelectedProfile] = useState<DeckItem | null>(null)
   const [likes, setLikes] = useState<{user_id: string; nome: string; areas_atuacao: string[]; nota: number}[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [showMessageModal, setShowMessageModal] = useState(false)
+  const [message, setMessage] = useState("")
+  const [swipingId, setSwipingId] = useState<string | null>(null)
+  const [planInfo, setPlanInfo] = useState<{ plan_id: string; plan_nome: string } | null>(null)
 
   useEffect(() => {
     api.match.filters().then(setFilterOptions).catch(() => {})
     api.match.likes().then(setLikes).catch(() => {})
     api.match.deck().then(setDeck).catch(() => {})
+    fetch("/api/subscription", { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
+      .then(r => r.json()).then(d => setPlanInfo({ plan_id: d.plan_id, plan_nome: d.plan?.nome || "Grátis" })).catch(() => {})
   }, [])
 
   const loadDeck = useCallback(async () => {
@@ -79,14 +85,41 @@ export default function MatchPage() {
   const current = deck[index]
   const initials = current?.nome?.split(" ").map(n => n[0]).join("").slice(0, 2) || "??"
 
-  const like = useCallback(async () => {
-    if (!current) return
+  const like = useCallback(async (msg?: string) => {
+    if (!current || swipingId) return
+    setSwipingId(current.id)
     try {
-      const res = await api.match.swipe(current.id, "like")
-      if (res.match) { setMatchMsg("Match!"); setTimeout(() => setMatchMsg(null), 2000) }
-    } catch {}
+      const res = await fetch("/api/match/swipe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}` },
+        body: JSON.stringify({ to_user_id: current.id, direction: "like", message: msg || undefined }),
+      })
+      if (res.status === 403) {
+        const err = await res.json()
+        if (err.limit_reached) {
+          setError(err.detail)
+          setTimeout(() => { setError(null); window.location.href = "/planos" }, 2000)
+        } else {
+          setError(err.detail)
+          setTimeout(() => setError(null), 3000)
+        }
+        return
+      }
+      const data = await res.json()
+      if (data.match) { setMatchMsg("Match!"); setTimeout(() => setMatchMsg(null), 2000) }
+    } catch { setError("Erro ao enviar curtida") }
+    setSwipingId(null)
     setIndex(i => i + 1)
-  }, [current])
+  }, [current, swipingId])
+
+  const handleLikeClick = () => {
+    if (!current) return
+    if (planInfo?.plan_id === "elite") {
+      setShowMessageModal(true)
+    } else {
+      like()
+    }
+  }
 
   const pass = useCallback(async () => {
     if (!current) return
@@ -217,8 +250,8 @@ export default function MatchPage() {
               </div>
 
               <div className="swipe-buttons" style={{ marginTop: 24, display: "flex", gap: 16, justifyContent: "center" }}>
-                <button className="swipe-btn pass" onClick={() => setView("deck")} style={{ width: 52, height: 52, borderRadius: "50%", border: "2px solid #ef4444", background: "transparent", color: "#ef4444", fontSize: 22, cursor: "pointer" }}>✕</button>
-                <button className="swipe-btn like" onClick={() => { setView("deck"); setTimeout(like, 100) }} style={{ width: 52, height: 52, borderRadius: "50%", border: "2px solid #22c55e", background: "transparent", color: "#22c55e", fontSize: 22, cursor: "pointer" }}>♥</button>
+                <button className="swipe-btn pass" onClick={() => setView("deck")} disabled={!!swipingId} style={{ width: 52, height: 52, borderRadius: "50%", border: "2px solid #ef4444", background: "transparent", color: "#ef4444", fontSize: 22, cursor: "pointer", opacity: swipingId ? 0.5 : 1 }}>✕</button>
+                <button className="swipe-btn like" onClick={() => { setView("deck"); setTimeout(handleLikeClick, 100) }} disabled={!!swipingId} style={{ width: 52, height: 52, borderRadius: "50%", border: "2px solid #22c55e", background: "transparent", color: "#22c55e", fontSize: 22, cursor: "pointer", opacity: swipingId ? 0.5 : 1 }}>♥</button>
               </div>
             </div>
           </div>
@@ -265,6 +298,55 @@ export default function MatchPage() {
           fontWeight: 600, zIndex: 60, animation: "fadeIn .3s", fontSize: 15,
         }}>
           Match!
+        </div>
+      )}
+
+      {error && (
+        <div style={{
+          position: "fixed", top: 130, left: "50%", transform: "translateX(-50%)",
+          background: "#7f1d1d", color: "#fca5a5", padding: "10px 20px", borderRadius: 8,
+          fontWeight: 500, zIndex: 60, fontSize: 13, whiteSpace: "nowrap",
+        }}>
+          {error}
+        </div>
+      )}
+
+      {showMessageModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100,
+          display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+        }} onClick={() => setShowMessageModal(false)}>
+          <div style={{
+            background: "var(--bg-card)", borderRadius: "var(--radius)", padding: 24,
+            maxWidth: 360, width: "100%", border: "1px solid var(--border)",
+          }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--text)", margin: "0 0 4px" }}>Primeira Impressão</h3>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 12px" }}>
+              Envie uma mensagem junto com sua solicitação de conexão (máx. 300 caracteres)
+            </p>
+            <textarea
+              value={message}
+              onChange={e => setMessage(e.target.value.slice(0, 300))}
+              placeholder="Ex: Tenho 15 anos de experiência em recuperação judicial e busco parceiros para atuação conjunta."
+              rows={4}
+              style={{
+                width: "100%", padding: "10px 12px", borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--border)", background: "var(--bg-input)",
+                color: "var(--text)", fontSize: 13, outline: "none", resize: "none", fontFamily: "inherit",
+              }}
+            />
+            <p style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "right", margin: "4px 0 12px" }}>{message.length}/300</p>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => { like(message); setShowMessageModal(false); setMessage("") }}
+                className="btn-fill" style={{ flex: 1, fontSize: 13 }}>
+                Enviar com mensagem
+              </button>
+              <button onClick={() => { like(); setShowMessageModal(false); setMessage("") }}
+                className="btn-outline" style={{ flex: 1, fontSize: 13 }}>
+                Enviar sem mensagem
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -316,8 +398,8 @@ export default function MatchPage() {
             </div>
 
             <div className="swipe-buttons" onClick={e => e.stopPropagation()} style={{ display: "flex", gap: 16, justifyContent: "center", paddingTop: 8, borderTop: "1px solid #1e293b" }}>
-              <button className="swipe-btn pass" onClick={pass} style={{ width: 52, height: 52, borderRadius: "50%", border: "2px solid #ef4444", background: "transparent", color: "#ef4444", fontSize: 22, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
-              <button className="swipe-btn like" onClick={like} style={{ width: 52, height: 52, borderRadius: "50%", border: "2px solid #22c55e", background: "transparent", color: "#22c55e", fontSize: 22, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>♥</button>
+              <button className="swipe-btn pass" onClick={pass} disabled={!!swipingId} style={{ width: 52, height: 52, borderRadius: "50%", border: "2px solid #ef4444", background: "transparent", color: "#ef4444", fontSize: 22, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: swipingId ? 0.5 : 1 }}>✕</button>
+              <button className="swipe-btn like" onClick={handleLikeClick} disabled={!!swipingId} style={{ width: 52, height: 52, borderRadius: "50%", border: "2px solid #22c55e", background: "transparent", color: "#22c55e", fontSize: 22, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: swipingId ? 0.5 : 1 }}>♥</button>
             </div>
           </div>
         </div>
