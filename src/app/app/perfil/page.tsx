@@ -59,8 +59,8 @@ export default function PerfilPage() {
           {foto ? (
             <img src={foto} alt="foto" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "3px solid #1e293b" }} />
           ) : (
-            <div className="avatar" style={{ width: 80, height: 80, fontSize: 28, margin: "0 auto", borderRadius: "50%", background: "#1e293b", display: "flex", alignItems: "center", justifyContent: "center", color: "#f8fafc" }}>
-              {initials}
+            <div className="avatar" style={{ width: 80, height: 80, margin: "0 auto", borderRadius: "50%", background: "linear-gradient(135deg, #1e293b, #334155)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: "#f97316" }}>
+              👤
             </div>
           )}
           <div style={{ position: "absolute", bottom: 0, right: 0, background: "#f97316", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#fff" }}>+</div>
