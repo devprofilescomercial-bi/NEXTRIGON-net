@@ -3,7 +3,7 @@ import Link from "next/link"
 export default function PrivacidadePage() {
   return (
     <main style={{ maxWidth: 720, margin: "0 auto", padding: "32px 20px", color: "#f8fafc", fontSize: 15, lineHeight: 1.7 }}>
-      <Link href="/" style={{ color: "#f97316", fontSize: 14, textDecoration: "none", display: "inline-block", marginBottom: 20 }}>← Voltar</Link>
+      <Link href="/" style={{ color: "var(--orange)", fontSize: 14, textDecoration: "none", display: "inline-block", marginBottom: 20 }}>← Voltar</Link>
 
       <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>Política de Privacidade</h1>
       <p style={{ color: "#94a3b8", fontSize: 13, marginBottom: 24 }}>Última atualização: 15 de junho de 2026 — Versão 1.0</p>
@@ -90,7 +90,7 @@ export default function PrivacidadePage() {
 
       <section style={{ marginBottom: 24 }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>10. Contato</h2>
-        <p>Para exercer seus direitos ou esclarecer dúvidas sobre esta política, entre em contato pelo email: <strong style={{ color: "#f97316" }}>lgpd@nextrigon.com</strong></p>
+        <p>Para exercer seus direitos ou esclarecer dúvidas sobre esta política, entre em contato pelo email: <strong style={{ color: "var(--orange)" }}>lgpd@nextrigon.com</strong></p>
       </section>
 
       <div style={{ borderTop: "1px solid #334155", paddingTop: 16, marginTop: 32 }}>

@@ -65,7 +65,7 @@ export default function ChatDetailPage() {
                 maxWidth: "75%",
                 padding: "10px 14px",
                 borderRadius: mine ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
-                background: mine ? "linear-gradient(135deg, #f97316, #ea580c)" : "#1e293b",
+                background: mine ? "linear-gradient(135deg, var(--orange), var(--orange-hover))" : "#1e293b",
                 color: mine ? "#fff" : "#f1f5f9",
                 fontSize: 14,
                 lineHeight: 1.4,
@@ -112,7 +112,7 @@ export default function ChatDetailPage() {
             }} />
           <button onClick={send} style={{
             width: 40, height: 40, borderRadius: "50%", border: "none",
-            background: "linear-gradient(135deg, #f97316, #ea580c)", color: "#fff",
+            background: "linear-gradient(135deg, var(--orange), var(--orange-hover))", color: "#fff",
             fontSize: 18, cursor: "pointer", display: "flex", alignItems: "center",
             justifyContent: "center", flexShrink: 0,
           }}>

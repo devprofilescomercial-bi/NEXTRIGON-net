@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f97316",
+  themeColor: "#ea580c",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           __html: `if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js")`,
         }} />
       </head>
-      <body style={{ margin: 0, backgroundColor: "#0f172a", color: "#f8fafc" }}>
+      <body style={{ margin: 0, backgroundColor: "var(--bg)", color: "var(--text)" }}>
         <AuthProvider>{children}</AuthProvider>
         <CookieConsent />
       </body>

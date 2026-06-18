@@ -82,7 +82,7 @@ export default function PlanosPage() {
               return (
                 <div key={plan.id} style={{
                   flex: "0 0 280px",
-                  background: isCurrent && !isFree ? "linear-gradient(135deg, var(--orange), #ea580c)" : "var(--bg-card)",
+                  background: isCurrent && !isFree ? "linear-gradient(135deg, var(--orange), var(--orange-hover))" : "var(--bg-card)",
                   borderRadius: "var(--radius)",
                   padding: 20,
                   border: isCurrent ? "2px solid var(--orange)" : "1px solid var(--border)",

@@ -69,12 +69,12 @@ export default function ProjetosPage() {
                   <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "#f8fafc" }}>{p.titulo}</h3>
                   <p style={{ margin: "2px 0 0", fontSize: 13, color: "#64748b" }}>{p.area || p.descricao}</p>
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: p.progresso >= 100 ? "#22c55e" : "#f97316" }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: p.progresso >= 100 ? "var(--green)" : "var(--orange)" }}>
                   {p.progresso}%
                 </span>
               </div>
               <div className="progress-track" style={{ marginTop: 8, background: "#1e293b", height: 4, borderRadius: 2 }}>
-                <div className={`progress-bar ${p.status === "completed" ? "done" : ""}`} style={{ width: `${p.progresso}%`, height: 4, borderRadius: 2, background: p.progresso >= 100 ? "#22c55e" : "#f97316", transition: "width .3s" }} />
+                <div className={`progress-bar ${p.status === "completed" ? "done" : ""}`} style={{ width: `${p.progresso}%`, height: 4, borderRadius: 2, background: p.progresso >= 100 ? "var(--green)" : "var(--orange)", transition: "width .3s" }} />
               </div>
               <div style={{ display: "flex", gap: 12, marginTop: 8, fontSize: 12, color: "#64748b" }}>
                 <span>📅 {p.prazo || "Sem prazo"}</span>

@@ -59,18 +59,18 @@ export default function PerfilPage() {
           {foto ? (
             <img src={foto} alt="foto" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "3px solid #1e293b" }} />
           ) : (
-            <div className="avatar" style={{ width: 80, height: 80, margin: "0 auto", borderRadius: "50%", background: "linear-gradient(135deg, #1e293b, #334155)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: "#f97316" }}>
+            <div className="avatar" style={{ width: 80, height: 80, margin: "0 auto", borderRadius: "50%", background: "linear-gradient(135deg, #1e293b, #334155)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: "var(--orange)" }}>
               👤
             </div>
           )}
-          <div style={{ position: "absolute", bottom: 0, right: 0, background: "#f97316", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#fff" }}>+</div>
+          <div style={{ position: "absolute", bottom: 0, right: 0, background: "var(--orange)", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#fff" }}>+</div>
           <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFoto} />
         </div>
 
         <h2 style={{ margin: "12px 0 4px", fontSize: 20, fontWeight: 700, color: "#f8fafc" }}>
           {profile?.nome || "Carregando..."}
         </h2>
-        <p style={{ margin: 0, fontSize: 14, color: "#f97316", fontWeight: 500 }}>
+        <p style={{ margin: 0, fontSize: 14, color: "var(--orange)", fontWeight: 500 }}>
           {isAdv ? "Advogado(a)" : "Cliente"}
         </p>
         <p style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>
@@ -114,7 +114,7 @@ export default function PerfilPage() {
 
           {isAdmin && (
             <Link href="/app/admin" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 16px", background: "#1a2338", borderRadius: 8, textDecoration: "none", border: "1px solid #1e293b" }}>
-              <span style={{ color: "#f97316", fontSize: 14, fontWeight: 600 }}>Painel Admin</span>
+              <span style={{ color: "var(--orange)", fontSize: 14, fontWeight: 600 }}>Painel Admin</span>
               <span style={{ color: "#64748b", fontSize: 12 }}>{">"}</span>
             </Link>
           )}

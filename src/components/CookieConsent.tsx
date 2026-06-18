@@ -32,7 +32,7 @@ export default function CookieConsent() {
         <p style={{ margin: 0, fontSize: 13, color: "#cbd5e1", lineHeight: 1.5 }}>
           Usamos cookies e dados pessoais para melhorar sua experiência na Nextrigon.
           Ao continuar, você concorda com nossa{" "}
-          <Link href="/privacidade" style={{ color: "#f97316", textDecoration: "underline" }}>
+          <Link href="/privacidade" style={{ color: "var(--orange)", textDecoration: "underline" }}>
             Política de Privacidade
           </Link>.
         </p>
