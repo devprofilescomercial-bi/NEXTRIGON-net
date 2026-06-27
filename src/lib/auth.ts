@@ -3,14 +3,13 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg" }),
 
   emailAndPassword: {
     enabled: true,
     sendResetPassword: async ({ url, user }) => {
+      const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
         from: "NEXTRIGON <noreply@nextrigon.com.br>",
         to: user.email,

@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { MercadoPagoConfig, Payment, PreApproval } from "mercadopago"
 
-const mp = new MercadoPagoConfig({
-  accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || "",
-})
+function getMp() {
+  return new MercadoPagoConfig({
+    accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || "",
+  });
+}
 
 const PLANOS_MP: Record<string, { valor: number; nome: string }> = {
   pro: { valor: 49.0, nome: "Nextrigon Pro - Mensal" },
@@ -36,7 +38,7 @@ export async function POST(req: NextRequest) {
     const plano = PLANOS_MP[plan_id]
     if (!plano) return NextResponse.json({ detail: "Plano inválido" }, { status: 400 })
 
-    const paymentApi = new Payment(mp)
+    const paymentApi = new Payment(getMp())
     const payment = await paymentApi.create({
       body: {
         transaction_amount: plano.valor,
@@ -63,7 +65,7 @@ export async function POST(req: NextRequest) {
     const plano = PLANOS_MP[plan_id]
     if (!plano) return NextResponse.json({ detail: "Plano inválido" }, { status: 400 })
 
-    const preApprovalApi = new PreApproval(mp)
+    const preApprovalApi = new PreApproval(getMp())
     const sub = await preApprovalApi.create({
       body: {
         reason: plano.nome,
