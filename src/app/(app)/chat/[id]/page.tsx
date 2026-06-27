@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import Link from "next/link";
 import { Avatar, IconCheck, IconClose } from "@/components/ui";
 
@@ -22,7 +23,36 @@ function Send() {
   );
 }
 
+type ProposalStatus = "aguardando" | "aceito" | "recusado";
+
 export default function ConversaPage() {
+  const [msg, setMsg] = useState("");
+  const [proposalStatus, setProposalStatus] = useState<ProposalStatus>("aguardando");
+  const [confirmando, setConfirmando] = useState<"aceitar" | "recusar" | null>(null);
+
+  function handleAceitar() {
+    if (confirmando !== "aceitar") { setConfirmando("aceitar"); return; }
+    setProposalStatus("aceito");
+    setConfirmando(null);
+  }
+
+  function handleRecusar() {
+    if (confirmando !== "recusar") { setConfirmando("recusar"); return; }
+    setProposalStatus("recusado");
+    setConfirmando(null);
+  }
+
+  const statusColors: Record<ProposalStatus, string> = {
+    aguardando: "bg-brand/15 text-brand",
+    aceito: "bg-success/20 text-success",
+    recusado: "bg-danger/15 text-danger",
+  };
+  const statusLabels: Record<ProposalStatus, string> = {
+    aguardando: "aguardando",
+    aceito: "aceito",
+    recusado: "recusado",
+  };
+
   return (
     <section className="-mx-5 flex min-h-0 flex-1 flex-col">
       {/* contact strip */}
@@ -57,7 +87,9 @@ export default function ConversaPage() {
         <div className="self-start w-full max-w-[88%] rounded-2xl glass p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-wide text-brand">PROPOSTA DE PARCERIA</span>
-            <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-semibold text-brand">aguardando</span>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusColors[proposalStatus]}`}>
+              {statusLabels[proposalStatus]}
+            </span>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
             <div>
@@ -70,22 +102,75 @@ export default function ConversaPage() {
             </div>
           </div>
           <div className="mt-2 text-xs text-muted">Escopo: elaboração de contrato social + acordo de sócios.</div>
-          <div className="mt-4 flex gap-2.5">
-            <button className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-line py-2.5 text-sm font-semibold text-danger">
-              <IconClose className="h-4 w-4" /> Recusar
+
+          {/* Botões apenas quando aguardando */}
+          {proposalStatus === "aguardando" && (
+            <div className="mt-4 flex gap-2.5">
+              <button
+                onClick={handleRecusar}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-semibold transition
+                  ${confirmando === "recusar"
+                    ? "border-danger bg-danger text-white"
+                    : "border-line text-danger"
+                  }`}
+              >
+                <IconClose className="h-4 w-4" />
+                {confirmando === "recusar" ? "Confirmar recusa" : "Recusar"}
+              </button>
+              <button
+                onClick={handleAceitar}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-semibold transition
+                  ${confirmando === "aceitar"
+                    ? "bg-success/80 text-white scale-95"
+                    : "bg-success text-white"
+                  }`}
+              >
+                <IconCheck className="h-4 w-4" />
+                {confirmando === "aceitar" ? "Confirmar aceite" : "Aceitar"}
+              </button>
+            </div>
+          )}
+
+          {/* Cancelar confirmação */}
+          {confirmando && (
+            <button
+              onClick={() => setConfirmando(null)}
+              className="mt-2 w-full text-center text-[11px] text-dim"
+            >
+              Cancelar
             </button>
-            <button className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-success py-2.5 text-sm font-semibold text-white">
-              <IconCheck className="h-4 w-4" /> Aceitar
-            </button>
-          </div>
+          )}
+
+          {/* Resultado */}
+          {proposalStatus === "aceito" && (
+            <div className="mt-3 flex items-center gap-2 rounded-xl bg-success/10 px-3 py-2.5 text-sm font-semibold text-success">
+              <IconCheck className="h-4 w-4" /> Proposta aceita! Agora é só começar.
+            </div>
+          )}
+          {proposalStatus === "recusado" && (
+            <div className="mt-3 rounded-xl bg-danger/10 px-3 py-2.5 text-sm font-semibold text-danger">
+              Proposta recusada.
+            </div>
+          )}
         </div>
       </div>
 
       {/* input bar */}
       <div className="flex items-center gap-2 border-t border-line px-5 pt-3">
         <button className="text-dim"><Paperclip /></button>
-        <input placeholder="Digite uma mensagem..." className="glass-soft flex-1 rounded-full px-4 py-2.5 text-sm text-ink outline-none placeholder:text-dim focus:border-brand/60" />
-        <button className="brand-gradient glow-brand flex h-10 w-10 items-center justify-center rounded-full text-white"><Send /></button>
+        <input
+          placeholder="Digite uma mensagem..."
+          value={msg}
+          onChange={e => setMsg(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter" && msg.trim()) setMsg(""); }}
+          className="glass-soft flex-1 rounded-full px-4 py-2.5 text-sm text-ink outline-none placeholder:text-dim"
+        />
+        <button
+          onClick={() => setMsg("")}
+          className="brand-gradient glow-brand flex h-10 w-10 items-center justify-center rounded-full text-white"
+        >
+          <Send />
+        </button>
       </div>
     </section>
   );

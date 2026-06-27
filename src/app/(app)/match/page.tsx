@@ -4,7 +4,7 @@ import { useState } from "react";
 import { lawyers, type Lawyer } from "@/lib/mock";
 import {
   Avatar, Stars, Tag, VerifiedBadge,
-  IconHeart, IconClose, IconPin, IconBolt, IconStar,
+  IconClose, IconPin, IconBolt, IconStar,
 } from "@/components/ui";
 
 function compat(l: Lawyer) {
@@ -106,8 +106,8 @@ export default function MatchPage() {
           </div>
         ) : (
           <div className="glass mt-6 flex w-full flex-col items-center gap-3 rounded-3xl px-6 py-14 text-center">
-            <span className="brand-gradient glow-brand flex h-14 w-14 items-center justify-center rounded-2xl">
-              <IconHeart className="h-7 w-7 text-white" />
+            <span className="brand-gradient glow-brand flex h-14 w-14 items-center justify-center rounded-2xl" style={{ fontSize: 28 }}>
+              🤝
             </span>
             <h3 className="text-lg font-bold">Você viu todos por agora</h3>
             <p className="max-w-[260px] text-sm text-muted">
@@ -134,8 +134,9 @@ export default function MatchPage() {
             onClick={like}
             aria-label="Tenho interesse"
             className="brand-gradient glow-brand flex h-[72px] w-[72px] items-center justify-center rounded-full text-white transition active:scale-90"
+            style={{ fontSize: 32 }}
           >
-            <IconHeart className="h-8 w-8" />
+            🤝
           </button>
           <button
             onClick={next}
@@ -157,8 +158,8 @@ export default function MatchPage() {
             </p>
             <div className="mt-6 flex items-center justify-center gap-4">
               <Avatar initials="EU" grad={["#fb923c", "#ea580c"]} size={72} />
-              <span className="brand-gradient glow-brand flex h-9 w-9 items-center justify-center rounded-full text-white">
-                <IconHeart className="h-5 w-5" />
+              <span className="brand-gradient glow-brand flex h-12 w-12 items-center justify-center rounded-full text-white" style={{ fontSize: 24 }}>
+                🤝
               </span>
               <Avatar initials={matched.initials} grad={matched.grad} size={72} />
             </div>
