@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
-import { supabaseAdmin } from "@/lib/supabase-admin"
+import { auth } from "@/lib/auth"
+import { db } from "@/db"
+import { oabVerification } from "@/db/schema"
 import { verificarOAB } from "@/lib/oab-verificacao"
+import { eq } from "drizzle-orm"
 
 async function authUser(req: NextRequest) {
-  const token = req.headers.get("authorization")?.replace("Bearer ", "") || ""
-  if (!token) return null
-  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
-  if (error || !user) return null
-  return user.id
+  const session = await auth.api.getSession({ headers: req.headers })
+  return session?.user ?? null
 }
 
 export async function POST(req: NextRequest) {
-  const userId = await authUser(req)
-  if (!userId) return NextResponse.json({ detail: "Nao autenticado" }, { status: 401 })
+  const user = await authUser(req)
+  if (!user) return NextResponse.json({ detail: "Nao autenticado" }, { status: 401 })
 
   const body = await req.json().catch(() => ({}))
   const { oab_numero, oab_uf } = body
@@ -30,7 +30,6 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Advogado suspenso ou cancelado — não aprova
   const situacao = (resultado.situacao || "").toLowerCase()
   if (situacao.includes("suspen") || situacao.includes("cancel")) {
     return NextResponse.json({
@@ -40,48 +39,34 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Aprovação automática — atualiza perfil e verificação
-  await supabaseAdmin.from("profiles").update({
-    oab_numero,
-    oab_uf: oab_uf.toUpperCase(),
-    oab_verified: true,
-  }).eq("user_id", userId)
+  // Salva/atualiza verificação no banco
+  const existing = await db
+    .select()
+    .from(oabVerification)
+    .where(eq(oabVerification.userId, user.id))
+    .limit(1)
 
-  // Upsert na tabela de verificações
-  const { data: existing } = await supabaseAdmin
-    .from("verifications")
-    .select("id")
-    .eq("user_id", userId)
-    .maybeSingle()
-
-  if (existing) {
-    await supabaseAdmin.from("verifications").update({
-      oab_numero,
-      oab_uf: oab_uf.toUpperCase(),
-      status: "approved",
-      reviewed_at: new Date().toISOString(),
-      reviewed_by: "sistema-cna",
-    }).eq("user_id", userId)
+  if (existing.length > 0) {
+    await db
+      .update(oabVerification)
+      .set({
+        oabNumber: oab_numero,
+        oabUf: oab_uf.toUpperCase(),
+        status: "approved",
+        reviewedAt: new Date(),
+        reviewedBy: "sistema-cna",
+      })
+      .where(eq(oabVerification.userId, user.id))
   } else {
-    await supabaseAdmin.from("verifications").insert({
-      user_id: userId,
-      oab_numero,
-      oab_uf: oab_uf.toUpperCase(),
+    await db.insert(oabVerification).values({
+      userId: user.id,
+      oabNumber: oab_numero,
+      oabUf: oab_uf.toUpperCase(),
       status: "approved",
-      reviewed_at: new Date().toISOString(),
-      reviewed_by: "sistema-cna",
+      reviewedAt: new Date(),
+      reviewedBy: "sistema-cna",
     })
   }
-
-  // Notifica o usuário
-  await supabaseAdmin.from("notifications").insert({
-    user_id: userId,
-    type: "verificacao",
-    title: "OAB verificada com sucesso!",
-    message: `Sua inscrição OAB ${oab_numero}/${oab_uf.toUpperCase()} foi verificada automaticamente. Seu perfil agora exibe o selo de advogado verificado.`,
-    cta_text: "Ver perfil",
-    cta_link: "/app/perfil",
-  })
 
   return NextResponse.json({
     valido: true,
