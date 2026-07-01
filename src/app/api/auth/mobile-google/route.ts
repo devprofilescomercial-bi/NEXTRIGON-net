@@ -19,5 +19,18 @@ export async function GET(req: NextRequest) {
     body: JSON.stringify({ provider: "google", callbackURL: mobileCallbackURL }),
   });
 
-  return auth.handler(syntheticReq);
+  const res = await auth.handler(syntheticReq);
+
+  // better-auth returns JSON {url, redirect:true} with status 200 for social sign-in.
+  // Convert to a real 302 so the browser follows it to Google.
+  if (res.status === 200) {
+    try {
+      const body = await res.clone().json() as { url?: string; redirect?: boolean };
+      if (body.redirect && body.url) {
+        return new Response(null, { status: 302, headers: { Location: body.url } });
+      }
+    } catch {}
+  }
+
+  return res;
 }

@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db";
+import { user, session, account, verificationToken } from "@/db/schema";
 import { Resend } from "resend";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://nextrigon.187.77.246.32.sslip.io";
@@ -40,28 +41,8 @@ async function sendEmail(to: string, subject: string, html: string) {
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
+    schema: { user, session, account, verification: verificationToken },
   }),
-
-  emailVerification: {
-    sendOnSignUp: false,
-    sendVerificationEmail: async ({ user, url }) => {
-      await sendEmail(
-        user.email,
-        "Confirme seu e-mail · NEXTRIGON",
-        emailBase(`
-          <h2 style="margin:0 0 8px;font-size:20px;font-weight:700">Confirme seu e-mail</h2>
-          <p style="margin:0 0 20px;font-size:14px;color:#9898b0;line-height:1.6">
-            Olá, <strong>${user.name?.split(" ")[0] ?? "advogado"}</strong>! Clique no botão abaixo para confirmar seu e-mail e ativar sua conta no NEXTRIGON.
-            O link expira em <strong>24 horas</strong>.
-          </p>
-          ${btnPrimary(url, "Confirmar e-mail")}
-          <p style="margin:20px 0 0;font-size:12px;color:#5d6c86">
-            Se você não criou uma conta, ignore este e-mail com segurança.
-          </p>
-        `)
-      );
-    },
-  },
 
   emailAndPassword: {
     enabled: true,

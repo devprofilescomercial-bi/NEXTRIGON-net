@@ -9,6 +9,8 @@ export const user = pgTable("user", {
   image: text("image"),
   role: text("role").default("user").notNull(), // user | admin
   status: text("status").default("pending").notNull(), // pending | active | banned
+  plano: text("plano").default("free").notNull(), // free | pro | elite
+  planoExpiraEm: timestamp("plano_expira_em"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -21,6 +23,7 @@ export const session = pgTable("session", {
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const account = pgTable("account", {
@@ -30,8 +33,13 @@ export const account = pgTable("account", {
   providerId: text("provider_id").notNull(),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+  scope: text("scope"),
   password: text("password"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const verificationToken = pgTable("verification", {
@@ -39,6 +47,8 @@ export const verificationToken = pgTable("verification", {
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 /* ============ Domínio Nextrigon ============ */
@@ -91,7 +101,8 @@ export const match = pgTable("match", {
 
 export const conversation = pgTable("conversation", {
   id: uuid("id").defaultRandom().primaryKey(),
-  matchId: uuid("match_id").notNull().references(() => match.id, { onDelete: "cascade" }),
+  matchId: uuid("match_id").references(() => match.id, { onDelete: "cascade" }),
+  slug: text("slug").unique(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -163,5 +174,13 @@ export const adminAction = pgTable("admin_action", {
   action: text("action").notNull(),
   targetId: text("target_id"),
   motivo: text("motivo"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const boost = pgTable("boost", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at").notNull(),
+  tipo: text("tipo").default("manual").notNull(), // manual | plan
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
