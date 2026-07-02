@@ -8,6 +8,13 @@
       "when": 1781998847040,
       "tag": "0000_dear_carlie_cooper",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1751500000000,
+      "tag": "0001_boost_and_schema_updates",
+      "breakpoints": true
     }
   ]
 }
