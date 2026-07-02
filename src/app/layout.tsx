@@ -7,6 +7,22 @@ const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Nextrigon — conecta. colabora. realiza.",
   description: "A rede de match entre advogados: encontre o parceiro certo por especialidade, comarca e reputação.",
+  openGraph: {
+    title: "Nextrigon — conecta. colabora. realiza.",
+    description: "A rede de match entre advogados: encontre o parceiro certo por especialidade, comarca e reputação.",
+    url: "https://nextrigon.com.br",
+    siteName: "Nextrigon",
+    images: [
+      {
+        url: "https://nextrigon.com.br/logo.png",
+        width: 512,
+        height: 512,
+        alt: "Nextrigon",
+      },
+    ],
+    locale: "pt_BR",
+    type: "website",
+  },
 };
 
 export const viewport: Viewport = {

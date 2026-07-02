@@ -144,17 +144,12 @@ export default function ResetPasswordPage() {
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-[420px] flex-col justify-center px-6 py-10">
       <div className="mb-10 flex flex-col items-center gap-5">
-        <svg viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-9 w-auto">
-          <defs>
-            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#fb923c" />
-              <stop offset="100%" stopColor="#ea580c" />
-            </linearGradient>
-          </defs>
-          <rect width="40" height="40" rx="11" fill="url(#g2)" />
-          <path d="M23 7L12 22h9l-2 11 11-15h-9z" fill="white" />
-          <text x="48" y="27" fontFamily="system-ui,sans-serif" fontWeight="900" fontSize="16" letterSpacing="1" fill="white">NEXTRIGON</text>
-        </svg>
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl ring-1 ring-white/10">
+            <img src="/logo.png" alt="Nextrigon" className="h-full w-full object-cover" />
+          </span>
+          <span className="text-[22px] font-black tracking-[0.12em] text-white">NEXTRIGON</span>
+        </div>
         <div className="text-center">
           <h1 className="text-2xl font-bold tracking-tight">Nova senha</h1>
           <p className="mt-1.5 text-sm text-muted">Crie uma senha forte para proteger sua conta.</p>

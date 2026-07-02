@@ -2,14 +2,35 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { lawyers, type Lawyer } from "@/lib/mock";
 import {
-  Avatar, Stars, Tag, VerifiedBadge,
+  Avatar, Tag,
   IconClose, IconPin, IconBolt, IconStar,
 } from "@/components/ui";
 
-function compat(l: Lawyer) {
-  return Math.min(99, Math.round(l.rating * 20));
+const GRADS: [string, string][] = [
+  ["#fb923c", "#ea580c"], ["#3256a8", "#1e3a8a"],
+  ["#7c3aed", "#4c1d95"], ["#0891b2", "#0e7490"],
+  ["#16a34a", "#15803d"], ["#dc2626", "#991b1b"],
+];
+
+type Profile = {
+  id: string;
+  name: string;
+  image: string | null;
+  bio: string | null;
+  areas: string[];
+  tags: string[];
+  city: string | null;
+  uf: string | null;
+};
+
+type Card = Profile & { initials: string; grad: [string, string]; area: string; compat: number };
+
+function toCard(p: Profile): Card {
+  const words = p.name.trim().split(" ");
+  const initials = ((words[0]?.[0] ?? "") + (words[words.length - 1]?.[0] ?? "")).toUpperCase();
+  const grad = GRADS[p.id.charCodeAt(0) % GRADS.length];
+  return { ...p, initials, grad, area: p.areas[0] ?? "Direito", compat: 70 + (p.id.charCodeAt(1) % 28) };
 }
 
 type Stats = {
@@ -41,32 +62,44 @@ function RocketIcon() {
 
 export default function MatchPage() {
   const router = useRouter();
+  const [deck, setDeck] = useState<Card[]>([]);
   const [i, setI] = useState(0);
-  const [matched, setMatched] = useState<Lawyer | null>(null);
+  const [matched, setMatched] = useState<Card | null>(null);
+  const [matchedConvId, setMatchedConvId] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [showPrimeiraImpressao, setShowPrimeiraImpressao] = useState(false);
   const [mensagemPI, setMensagemPI] = useState("");
-  const [pendingLike, setPendingLike] = useState<Lawyer | null>(null);
+  const [pendingLike, setPendingLike] = useState<Card | null>(null);
 
   useEffect(() => {
+    fetch("/api/match", { credentials: "include" })
+      .then(r => r.ok ? r.json() : [])
+      .then((profiles: Profile[]) => setDeck(profiles.map(toCard)))
+      .catch(() => {});
     fetch("/api/monetizacao/stats", { credentials: "include" })
       .then(r => r.ok ? r.json() : null)
       .then(setStats)
       .catch(() => {});
   }, []);
 
-  const deck = lawyers.slice(i);
-  const current = deck[0];
+  const current = deck[i];
   const plano = stats?.plano ?? "free";
   const swipesRestantes = stats?.swipesRestantes;
   const limiteAtingido = plano === "free" && swipesRestantes != null && swipesRestantes <= 0;
 
-  function registrarSwipe(direction: "like" | "pass") {
-    fetch("/api/monetizacao/stats", { credentials: "include" });
+  async function registrarSwipe(toUserId: string, direction: "like" | "pass") {
+    const res = await fetch("/api/match/swipe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ toUserId, direction }),
+    });
+    if (res.ok) return res.json() as Promise<{ matched: boolean; conversationId?: string }>;
+    return { matched: false };
   }
 
-  function next() {
-    registrarSwipe("pass");
+  async function next() {
+    if (current) await registrarSwipe(current.id, "pass");
     setI(v => v + 1);
     setStats(s => s ? { ...s, swipesMes: s.swipesMes + 1, swipesRestantes: s.swipesRestantes !== null ? Math.max(0, s.swipesRestantes - 1) : null } : s);
   }
@@ -81,9 +114,12 @@ export default function MatchPage() {
     }
   }
 
-  function confirmarLike(lawyer: Lawyer, _mensagem?: string) {
-    registrarSwipe("like");
-    if (lawyer.mutual) setMatched(lawyer);
+  async function confirmarLike(card: Card, _mensagem?: string) {
+    const result = await registrarSwipe(card.id, "like");
+    if (result.matched) {
+      setMatched(card);
+      setMatchedConvId(result.conversationId ?? null);
+    }
     setI(v => v + 1);
     setStats(s => s ? { ...s, swipesMes: s.swipesMes + 1, swipesRestantes: s.swipesRestantes !== null ? Math.max(0, s.swipesRestantes - 1) : null } : s);
     setShowPrimeiraImpressao(false);
@@ -193,7 +229,7 @@ export default function MatchPage() {
         ) : current ? (
           <div className="relative w-full" style={{ minHeight: 400 }}>
             {/* peeking cards behind */}
-            {deck.slice(1, 3).map((l, idx) => (
+            {deck.slice(i + 1, i + 3).map((l, idx) => (
               <div
                 key={l.id}
                 className="glass absolute inset-x-0 top-0 rounded-3xl"
@@ -218,7 +254,7 @@ export default function MatchPage() {
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
                 <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/35 px-3 py-1.5 text-xs font-semibold backdrop-blur">
-                  <IconStar className="h-3.5 w-3.5 text-gold" /> {compat(current)}% compatível
+                  <IconStar className="h-3.5 w-3.5 text-gold" /> {current.compat}% compatível
                 </span>
                 <div className="absolute -bottom-7 left-5">
                   <span className="block rounded-3xl ring-4 ring-[#0b1322]">
@@ -235,13 +271,12 @@ export default function MatchPage() {
                 <p className="mt-0.5 font-semibold text-brand">{current.area}</p>
 
                 <div className="mt-2 flex items-center gap-3 text-sm text-muted">
-                  <span className="inline-flex items-center gap-1">
-                    <IconPin className="h-4 w-4 text-dim" /> {current.city} · {current.uf}
-                  </span>
-                  <Stars rating={current.rating} reviews={current.reviews} />
+                  {(current.city || current.uf) && (
+                    <span className="inline-flex items-center gap-1">
+                      <IconPin className="h-4 w-4 text-dim" /> {[current.city, current.uf].filter(Boolean).join(" · ")}
+                    </span>
+                  )}
                 </div>
-
-                {current.verified && <VerifiedBadge className="mt-3" />}
 
                 <div className="mt-3 flex flex-wrap gap-2">
                   {current.tags.map((t) => (
@@ -249,10 +284,12 @@ export default function MatchPage() {
                   ))}
                 </div>
 
-                <div className="glass-soft mt-4 flex items-center gap-2 rounded-2xl px-3.5 py-3 text-sm text-muted">
-                  <IconBolt className="h-4 w-4 shrink-0 text-brand" />
-                  <span>{current.reason}</span>
-                </div>
+                {current.bio && (
+                  <div className="glass-soft mt-4 flex items-center gap-2 rounded-2xl px-3.5 py-3 text-sm text-muted">
+                    <IconBolt className="h-4 w-4 shrink-0 text-brand" />
+                    <span className="line-clamp-2">{current.bio}</span>
+                  </div>
+                )}
 
                 {/* Aviso de Primeira Impressão para Elite */}
                 {plano === "elite" && (
@@ -369,7 +406,7 @@ export default function MatchPage() {
               <Avatar initials={matched.initials} grad={matched.grad} size={72} />
             </div>
             <button
-              onClick={() => { setMatched(null); router.push("/chat"); }}
+              onClick={() => { setMatched(null); router.push(matchedConvId ? `/chat/${matchedConvId}` : "/chat"); }}
               className="brand-gradient glow-brand mt-7 w-full rounded-2xl py-3.5 font-semibold text-white"
             >
               Conversar agora

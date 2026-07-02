@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# tokens / credentials locais
+tokensMP.txt
+*.jpeg
+*.jpg
+apresentacao.html

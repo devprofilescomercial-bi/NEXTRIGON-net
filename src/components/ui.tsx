@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 /* ---------- icons (24px viewport, currentColor) ---------- */
 type I = { className?: string };
 export const IconHeart = ({ className }: I) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 21s-6.7-4.35-9.3-8.04C.9 10.3 1.6 6.9 4.6 5.7c2-.8 4 .1 5 1.7 1-1.6 3-2.5 5-1.7 3 1.2 3.7 4.6 1.9 7.26C18.7 16.65 12 21 12 21z" /></svg>
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
 );
 export const IconClose = ({ className }: I) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" className={className}><path d="M6 6l12 12M18 6L6 18" /></svg>
@@ -83,12 +83,12 @@ export function Avatar({ initials, grad, size = 56 }: { initials: string; grad: 
 export function AppHeader({ title = "NEXTRIGON" }: { title?: string }) {
   return (
     <header className="sticky top-0 z-20 flex items-center gap-3 px-5 pb-3 pt-4 backdrop-blur-md">
-      <span className="brand-gradient glow-brand flex h-9 w-9 items-center justify-center rounded-xl text-white">
-        <IconBolt className="h-5 w-5" />
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl ring-1 ring-white/10">
+        <img src="/logo.png" alt="NEXTRIGON" className="h-full w-full object-cover" />
       </span>
-      <div className="mr-auto leading-none">
-        <div className="text-[15px] font-bold tracking-[0.18em]">{title}</div>
-        <div className="mt-1 text-[10px] font-medium tracking-[0.32em] text-dim">CONECTA · COLABORA</div>
+      <div className="min-w-0 mr-auto leading-none">
+        <div className="text-[15px] font-bold tracking-[0.18em]">NEXTRIGON</div>
+        <div className="mt-1 text-[10px] font-medium tracking-wide text-dim whitespace-nowrap overflow-hidden text-ellipsis">O próximo nível das conexões profissionais</div>
       </div>
       <button className="glass-soft flex h-9 w-9 items-center justify-center rounded-xl text-muted">
         <IconSliders className="h-5 w-5" />
@@ -102,22 +102,22 @@ export function AppHeader({ title = "NEXTRIGON" }: { title?: string }) {
 }
 
 const NAV = [
-  { href: "/match", label: "Match", Icon: IconHeart },
-  { href: "/projetos", label: "Projetos", Icon: IconLayers },
-  { href: "/chat", label: "Chat", Icon: IconChat },
-  { href: "/perfil", label: "Perfil", Icon: IconUser },
+  { href: "/match",    label: "Match",    emoji: "🤝" },
+  { href: "/projetos", label: "Projetos", emoji: "📁" },
+  { href: "/chat",     label: "Chat",     emoji: "💬" },
+  { href: "/perfil",   label: "Perfil",   emoji: "👤" },
 ];
 
 export function BottomNav() {
   const path = usePathname();
   return (
     <nav className="glass z-30 flex shrink-0 items-center justify-around rounded-t-3xl px-2 pt-2.5 pb-[max(10px,env(safe-area-inset-bottom))]">
-      {NAV.map(({ href, label, Icon }) => {
+      {NAV.map(({ href, label, emoji }) => {
         const active = path === href || path.startsWith(href + "/");
         return (
           <Link key={href} href={href} className="flex flex-1 flex-col items-center gap-1 py-1">
-            <span className={`flex h-9 w-12 items-center justify-center rounded-xl transition ${active ? "brand-gradient text-white glow-brand" : "text-dim"}`}>
-              <Icon className="h-[18px] w-[18px]" />
+            <span className={`flex h-9 w-12 items-center justify-center rounded-xl transition ${active ? "brand-gradient glow-brand" : ""}`}>
+              <span className="text-[22px] leading-none">{emoji}</span>
             </span>
             <span className={`text-[10px] font-medium ${active ? "text-ink" : "text-dim"}`}>{label}</span>
           </Link>

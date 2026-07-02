@@ -6,17 +6,12 @@ import { signIn } from "@/lib/auth-client";
 
 function Logo() {
   return (
-    <svg viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-10 w-auto">
-      <defs>
-        <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#fb923c" />
-          <stop offset="100%" stopColor="#ea580c" />
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="11" fill="url(#logoGrad)" />
-      <path d="M23 7L12 22h9l-2 11 11-15h-9z" fill="white" />
-      <text x="48" y="27" fontFamily="system-ui,sans-serif" fontWeight="900" fontSize="16" letterSpacing="1" fill="white">NEXTRIGON</text>
-    </svg>
+    <div className="flex items-center gap-3">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl ring-1 ring-white/10">
+        <img src="/logo.png" alt="Nextrigon" className="h-full w-full object-cover" />
+      </span>
+      <span className="text-[22px] font-black tracking-[0.12em] text-white">NEXTRIGON</span>
+    </div>
   );
 }
 
@@ -50,7 +45,15 @@ export default function LoginPage() {
     try {
       const result = await signIn.email({ email: email.trim(), password });
       if (result?.error) {
-        setError("E-mail ou senha incorretos. Verifique e tente novamente.");
+        const msg = result.error.message ?? "";
+        const code = (result.error as { code?: string }).code ?? "";
+        if (msg.toLowerCase().includes("too many")) {
+          setError("Muitas tentativas. Aguarde alguns segundos e tente novamente.");
+        } else if (code === "EMAIL_NOT_VERIFIED" || msg.toLowerCase().includes("not verified")) {
+          setError("Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada e clique no link de ativação.");
+        } else {
+          setError("E-mail ou senha incorretos. Verifique e tente novamente.");
+        }
       } else {
         router.replace("/match");
       }
@@ -63,8 +66,17 @@ export default function LoginPage() {
 
   async function handleGoogle() {
     setGoogleLoading(true);
+    setError("");
     try {
-      await signIn.social({ provider: "google", callbackURL: "/match" });
+      const result = await signIn.social({
+        provider: "google",
+        callbackURL: "/match",
+      });
+      if (result?.error) {
+        setError("Erro ao conectar com Google. Verifique a configuração e tente novamente.");
+        setGoogleLoading(false);
+      }
+      // Se sem erro, redirect está acontecendo — não resetar loading
     } catch {
       setError("Erro ao acessar login com Google. Tente novamente.");
       setGoogleLoading(false);

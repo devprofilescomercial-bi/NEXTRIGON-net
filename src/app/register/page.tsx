@@ -6,17 +6,12 @@ import { signUp } from "@/lib/auth-client";
 
 function Logo() {
   return (
-    <svg viewBox="0 0 120 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-9 w-auto">
-      <defs>
-        <linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#fb923c" />
-          <stop offset="100%" stopColor="#ea580c" />
-        </linearGradient>
-      </defs>
-      <rect width="36" height="36" rx="10" fill="url(#lg2)" />
-      <path d="M21 6L11 20h8l-2 10 10-14h-8z" fill="white" />
-      <text x="44" y="24" fontFamily="system-ui, sans-serif" fontWeight="800" fontSize="15" letterSpacing="0.5" fill="white">NEXTRIGON</text>
-    </svg>
+    <div className="flex items-center gap-3">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl ring-1 ring-white/10">
+        <img src="/logo.png" alt="Nextrigon" className="h-full w-full object-cover" />
+      </span>
+      <span className="text-[22px] font-black tracking-[0.12em] text-white">NEXTRIGON</span>
+    </div>
   );
 }
 
@@ -45,6 +40,7 @@ export default function RegisterPage() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState("");
 
   const strength = pwStrength(password);
 
@@ -68,15 +64,53 @@ export default function RegisterPage() {
     try {
       const result = await signUp.email({ name: name.trim(), email, password });
       if (result.error) {
-        setError(result.error.message || "Erro ao criar conta. Tente outro e-mail.");
+        const msg = result.error.message ?? "";
+        if (msg.toLowerCase().includes("too many")) {
+          setError("Muitas tentativas. Aguarde alguns segundos e tente novamente.");
+        } else if (msg.toLowerCase().includes("already") || msg.toLowerCase().includes("exists")) {
+          setError("Este e-mail já está cadastrado. Verifique sua caixa de entrada — enviamos instruções.");
+          fetch("/api/notify/existing-account", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          }).catch(() => {});
+        } else {
+          setError(msg || "Erro ao criar conta. Tente novamente.");
+        }
       } else {
-        router.push("/onboarding");
+        setEmailSent(email);
       }
     } catch {
       setError("Erro ao criar conta. Tente novamente.");
     } finally {
       setLoading(false);
     }
+  }
+
+  if (emailSent) {
+    return (
+      <div className="mx-auto flex min-h-svh w-full max-w-[440px] flex-col items-center justify-center px-6 py-10 text-center">
+        <Logo />
+        <div className="mt-8 glass rounded-3xl px-6 py-8 w-full">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl mx-auto text-4xl"
+            style={{ background: "linear-gradient(135deg,#fb923c,#ea580c)" }}>
+            ✉️
+          </div>
+          <h1 className="text-2xl font-bold">Verifique seu e-mail</h1>
+          <p className="mt-3 text-sm text-muted leading-relaxed">
+            Enviamos um link de confirmação para<br />
+            <strong className="text-ink">{emailSent}</strong>
+          </p>
+          <p className="mt-4 text-xs text-dim leading-relaxed">
+            Clique no link no e-mail para ativar sua conta.<br />
+            Verifique também a pasta de spam.
+          </p>
+          <Link href="/login" className="mt-6 block rounded-2xl border border-line py-3.5 text-center font-semibold text-ink">
+            Ir para o login
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
