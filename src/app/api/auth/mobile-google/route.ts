@@ -3,12 +3,17 @@ import { auth } from "@/lib/auth";
 
 // Mobile OAuth entry point: mobile app opens this URL in a browser
 // It forwards the request to better-auth as a POST to initiate the Google OAuth flow
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? process.env.BETTER_AUTH_URL ?? "";
+
 export async function GET(req: NextRequest) {
   const host = req.headers.get("host") ?? "";
   const proto = req.headers.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
-  const mobileCallbackURL = `${proto}://${host}/api/mobile-callback`;
+  const localOrigin = `${proto}://${host}`;
 
-  const origin = `${proto}://${host}`;
+  // Always use the canonical app URL as origin so better-auth trustedOrigins check passes,
+  // even when the mobile app hits this route via an alternate domain (e.g. sslip.io).
+  const origin = APP_URL || localOrigin;
+  const mobileCallbackURL = `${origin}/api/mobile-callback`;
   const syntheticReq = new Request(`${origin}/api/auth/sign-in/social`, {
     method: "POST",
     headers: {
