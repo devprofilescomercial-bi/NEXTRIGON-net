@@ -108,8 +108,8 @@ export const auth = betterAuth({
   },
 
   session: { expiresIn: 60 * 60 * 24 * 7 },
-  secret: process.env.BETTER_AUTH_SECRET,
-  baseURL: process.env.BETTER_AUTH_URL,
+  secret: process.env.BETTER_AUTH_SECRET ?? process.env.NEXT_PUBLIC_APP_URL ?? "nextrigon-secret-fallback",
+  baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL,
   trustedOrigins: [
     process.env.BETTER_AUTH_URL ?? "",
     process.env.NEXT_PUBLIC_APP_URL ?? "",
